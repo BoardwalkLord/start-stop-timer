@@ -36,6 +36,16 @@
             top: 10px;
             right: 10px;
         }
+        #shortcutSettings {
+            position: absolute;
+            top: 50px;
+            right: 10px;
+            text-align: left;
+        }
+        .muted {
+            opacity: 0.5;
+            pointer-events: none;
+        }
     </style>
 </head>
 <body>
@@ -51,6 +61,12 @@
             Use same shortcut for Start/Stop
         </label>
     </div>
+    <div id="shortcutSettings">
+        <p>Click a field, then press a key to set the shortcut:</p>
+        <label>Start: <input type="text" id="startKey" readonly></label><br>
+        <label>Stop: <input type="text" id="stopKey" readonly></label><br>
+        <label>Reset: <input type="text" id="resetKey" readonly></label>
+    </div>
     
     <script>
         let timerInterval, startTime, elapsedTime = 0;
@@ -58,6 +74,10 @@
         let startKey = ' '; // Spacebar
         let stopKey = ' '; // Spacebar (default same as start)
         let resetKey = 'Escape';
+        
+        document.getElementById('startKey').value = 'Space';
+        document.getElementById('stopKey').value = 'Space';
+        document.getElementById('resetKey').value = 'Escape';
         
         function updateTimerDisplay() {
             const time = new Date(elapsedTime);
@@ -114,11 +134,30 @@
         });
         
         document.getElementById('toggleSameShortcut').addEventListener('change', (event) => {
+            const stopKeyInput = document.getElementById('stopKey');
             if (event.target.checked) {
                 stopKey = startKey;
+                stopKeyInput.value = startKey;
+                stopKeyInput.classList.add('muted');
             } else {
-                stopKey = ''; // Reset stop key assignment
+                stopKey = '';
+                stopKeyInput.value = '';
+                stopKeyInput.classList.remove('muted');
             }
+        });
+        
+        document.querySelectorAll('#shortcutSettings input').forEach(input => {
+            input.addEventListener('focus', (event) => {
+                document.addEventListener('keydown', function captureKey(e) {
+                    if (!event.target.classList.contains('muted')) {
+                        event.target.value = e.key;
+                        if (event.target.id === 'startKey') startKey = e.key;
+                        if (event.target.id === 'stopKey') stopKey = e.key;
+                        if (event.target.id === 'resetKey') resetKey = e.key;
+                    }
+                    document.removeEventListener('keydown', captureKey);
+                }, { once: true });
+            });
         });
         
         updateTimerDisplay();
