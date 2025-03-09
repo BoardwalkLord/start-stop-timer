@@ -14,7 +14,7 @@
         .stop { background: red; color: white; }
         .reset { background: blue; color: white; }
         .settings { margin-top: 20px; text-align: center; }
-        .key-icons img { width: 50px; height: 50px; cursor: pointer; margin: 10px; }
+        .key-icons span { font-size: 2rem; cursor: pointer; margin: 10px; display: inline-block; padding: 10px; border: 1px solid #000; border-radius: 5px; }
     </style>
 </head>
 <body>
@@ -27,11 +27,11 @@
     <div class="settings">
         <p>Click on an icon to assign a custom key:</p>
         <div class="key-icons">
-            <img src="start-icon.png" alt="Start Key" id="startKeyIcon">
+            <span id="startKeyIcon">▶</span>
             <span id="startKeyDisplay">Space</span>
-            <img src="stop-icon.png" alt="Stop Key" id="stopKeyIcon">
+            <span id="stopKeyIcon">■</span>
             <span id="stopKeyDisplay">Space</span>
-            <img src="reset-icon.png" alt="Reset Key" id="resetKeyIcon">
+            <span id="resetKeyIcon">↻</span>
             <span id="resetKeyDisplay">Escape</span>
         </div>
     </div>
