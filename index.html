@@ -14,8 +14,9 @@
         .stop { background: red; color: white; }
         .reset { background: blue; color: white; }
         .settings { margin-top: 20px; text-align: center; }
-        .key-icons span { font-size: 2rem; cursor: pointer; margin: 10px; display: inline-block; padding: 10px; border: 1px solid #000; border-radius: 5px; }
-        .option { margin-top: 10px; }
+        .key-table { margin-top: 10px; border-collapse: collapse; width: auto; }
+        .key-table td, .key-table th { border: 1px solid black; padding: 10px; text-align: center; font-size: 1.5rem; }
+        .disabled { opacity: 0.5; pointer-events: none; }
     </style>
 </head>
 <body>
@@ -26,20 +27,29 @@
         <button class="reset">Reset</button>
     </div>
     <div class="settings">
-        <p>Click on an icon to assign a custom key:</p>
-        <div class="key-icons">
-            <span id="startKeyIcon">▶</span>
-            <span id="startKeyDisplay">Space</span>
-            <span id="stopKeyIcon">■</span>
-            <span id="stopKeyDisplay">Space</span>
-            <span id="resetKeyIcon">↻</span>
-            <span id="resetKeyDisplay">Escape</span>
-        </div>
-        <div class="option">
-            <label>
-                <input type="checkbox" id="toggleSameKey" checked> Use the same key for Start/Stop
-            </label>
-        </div>
+        <p>Click on a label to assign a custom key:</p>
+        <label>
+            <input type="checkbox" id="sameKeyToggle" checked>
+            Use the same key for Start and Stop
+        </label>
+        <table class="key-table">
+            <tr>
+                <th>Action</th>
+                <th>Key</th>
+            </tr>
+            <tr>
+                <td id="startKeyIcon">Start</td>
+                <td id="startKeyDisplay">Space</td>
+            </tr>
+            <tr>
+                <td id="stopKeyIcon" class="disabled">Stop</td>
+                <td id="stopKeyDisplay" class="disabled">(Same as Start)</td>
+            </tr>
+            <tr>
+                <td id="resetKeyIcon">Reset</td>
+                <td id="resetKeyDisplay">Escape</td>
+            </tr>
+        </table>
     </div>
     <script>
         let timerDisplay = document.querySelector('.timer');
@@ -52,7 +62,7 @@
         let startKeyIcon = document.getElementById('startKeyIcon');
         let stopKeyIcon = document.getElementById('stopKeyIcon');
         let resetKeyIcon = document.getElementById('resetKeyIcon');
-        let toggleSameKey = document.getElementById('toggleSameKey');
+        let sameKeyToggle = document.getElementById('sameKeyToggle');
         
         let startKey = ' '; // Default: Spacebar
         let stopKey = ' '; // Default: Spacebar
@@ -60,41 +70,14 @@
         let startStopSame = true;
         let timer = null, startTime = 0, elapsedTime = 0;
         
-        function updateDisplay() {
-            let time = elapsedTime + (timer ? Date.now() - startTime : 0);
-            let hours = Math.floor(time / 3600000).toString().padStart(2, '0');
-            let minutes = Math.floor((time % 3600000) / 60000).toString().padStart(2, '0');
-            let seconds = Math.floor((time % 60000) / 1000).toString().padStart(2, '0');
-            let milliseconds = (time % 1000).toString().padStart(3, '0');
-            timerDisplay.textContent = `${hours}:${minutes}:${seconds}.${milliseconds}`;
-        }
-
-        function startTimer() {
-            if (!timer) {
-                startTime = Date.now() - elapsedTime;
-                timer = setInterval(updateDisplay, 10);
-            }
-        }
-
-        function stopTimer() {
-            if (timer) {
-                elapsedTime += Date.now() - startTime;
-                clearInterval(timer);
-                timer = null;
-            }
-        }
-
-        function resetTimer() {
-            stopTimer();
-            elapsedTime = 0;
-            updateDisplay();
-        }
-
         function setKey(action, displayElement) {
             document.addEventListener('keydown', function keyListener(e) {
                 if (action === 'start') {
                     startKey = e.key;
-                    if (startStopSame) stopKey = startKey;
+                    if (startStopSame) {
+                        stopKey = startKey;
+                        stopKeyDisplay.textContent = "(Same as Start)";
+                    }
                 } else if (action === 'stop' && !startStopSame) {
                     stopKey = e.key;
                 } else if (action === 'reset') {
@@ -108,7 +91,6 @@
         startKeyIcon.addEventListener('click', () => {
             alert("Press the key you want to assign to Start.");
             setKey('start', startKeyDisplay);
-            if (startStopSame) stopKeyDisplay.textContent = startKeyDisplay.textContent;
         });
         
         stopKeyIcon.addEventListener('click', () => {
@@ -122,27 +104,18 @@
             alert("Press the key you want to assign to Reset.");
             setKey('reset', resetKeyDisplay);
         });
-
-        toggleSameKey.addEventListener('change', (e) => {
-            startStopSame = e.target.checked;
-            stopKeyIcon.style.pointerEvents = startStopSame ? 'none' : 'auto';
-            stopKeyDisplay.style.opacity = startStopSame ? '0.5' : '1';
-            if (startStopSame) stopKey = startKey;
-        });
-
-        startButton.addEventListener('click', startTimer);
-        stopButton.addEventListener('click', stopTimer);
-        resetButton.addEventListener('click', resetTimer);
-
-        document.addEventListener('keydown', (e) => {
-            if (e.key === startKey && startStopSame) {
-                timer ? stopTimer() : startTimer();
-            } else if (e.key === startKey && !startStopSame) {
-                startTimer();
-            } else if (e.key === stopKey && !startStopSame) {
-                stopTimer();
-            } else if (e.key === resetKey) {
-                resetTimer();
+        
+        sameKeyToggle.addEventListener('change', () => {
+            startStopSame = sameKeyToggle.checked;
+            if (startStopSame) {
+                stopKey = startKey;
+                stopKeyDisplay.textContent = "(Same as Start)";
+                stopKeyIcon.classList.add('disabled');
+                stopKeyDisplay.classList.add('disabled');
+            } else {
+                stopKeyDisplay.textContent = stopKey;
+                stopKeyIcon.classList.remove('disabled');
+                stopKeyDisplay.classList.remove('disabled');
             }
         });
     </script>
