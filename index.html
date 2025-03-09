@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Start Stop Timer</title>
+    <style>
+        body {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 100vh;
+            font-family: Arial, sans-serif;
+            text-align: center;
+        }
+        #timer {
+            font-size: 3rem;
+            margin: 20px;
+        }
+        button {
+            font-size: 2rem;
+            padding: 20px;
+            margin: 10px;
+            width: 200px;
+        }
+    </style>
+</head>
+<body>
+    <h1>Start Stop Timer</h1>
+    <div id="timer">00:00:00</div>
+    <button id="startBtn">Start</button>
+    <button id="stopBtn">Stop</button>
+    <div>
+        <label>Start Key: <input type="text" id="startKey" maxlength="1"></label>
+        <label>Stop Key: <input type="text" id="stopKey" maxlength="1"></label>
+    </div>
+    <script>
+        let timer;
+        let seconds = 0;
+        let startKey = 's';
+        let stopKey = 'x';
+        
+        function updateTimerDisplay() {
+            let hrs = String(Math.floor(seconds / 3600)).padStart(2, '0');
+            let mins = String(Math.floor((seconds % 3600) / 60)).padStart(2, '0');
+            let secs = String(seconds % 60).padStart(2, '0');
+            document.getElementById('timer').innerText = `${hrs}:${mins}:${secs}`;
+        }
+        
+        function startTimer() {
+            if (!timer) {
+                timer = setInterval(() => {
+                    seconds++;
+                    updateTimerDisplay();
+                }, 1000);
+            }
+        }
+        
+        function stopTimer() {
+            clearInterval(timer);
+            timer = null;
+        }
+        
+        document.getElementById('startBtn').addEventListener('click', startTimer);
+        document.getElementById('stopBtn').addEventListener('click', stopTimer);
+        
+        document.getElementById('startKey').addEventListener('input', (e) => {
+            startKey = e.target.value.toLowerCase();
+        });
+        
+        document.getElementById('stopKey').addEventListener('input', (e) => {
+            stopKey = e.target.value.toLowerCase();
+        });
+        
+        document.addEventListener('keydown', (e) => {
+            if (e.key.toLowerCase() === startKey) {
+                startTimer();
+            } else if (e.key.toLowerCase() === stopKey) {
+                stopTimer();
+            }
+        });
+    </script>
+</body>
+</html>
