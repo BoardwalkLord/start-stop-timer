@@ -3,63 +3,52 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Start Stop Timer</title>
+    <title>Start/Stop Timer</title>
     <style>
-        body {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            height: 100vh;
-            font-family: Arial, sans-serif;
-            text-align: center;
-        }
-        #timer {
-            font-size: 3rem;
-            margin: 20px;
-        }
-        button {
-            font-size: 2rem;
-            padding: 20px;
-            margin: 10px;
-            width: 200px;
-        }
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100vh; text-align: center; font-family: Arial, sans-serif; user-select: none; }
+        .timer { font-size: 5rem; margin-bottom: 20px; }
+        .buttons { display: flex; width: 100%; }
+        button { flex: 1; font-size: 2rem; padding: 20px; cursor: pointer; border: none; }
+        .start { background: green; color: white; }
+        .stop { background: red; color: white; }
+        .reset { background: blue; color: white; }
     </style>
 </head>
 <body>
-    <h1>Start Stop Timer</h1>
-    <div id="timer">00:00:00.000</div>
-    <button id="startBtn">Start</button>
-    <button id="stopBtn">Stop</button>
-    <div>
-        <label>Start Key: <input type="text" id="startKey" maxlength="1"></label>
-        <label>Stop Key: <input type="text" id="stopKey" maxlength="1" disabled></label>
-        <label><input type="checkbox" id="sameKey"> Use same key for Start/Stop</label>
+    <div class="timer">00:00:00.000</div>
+    <div class="buttons">
+        <button class="start">Start</button>
+        <button class="stop">Stop</button>
+        <button class="reset">Reset</button>
     </div>
     <script>
-        let timer;
-        let startTime;
-        let elapsedTime = 0;
-        let startKey = 's';
-        let stopKey = 'x';
-        let sameKey = false;
-        
-        function updateTimerDisplay() {
+        let timerDisplay = document.querySelector('.timer');
+        let startButton = document.querySelector('.start');
+        let stopButton = document.querySelector('.stop');
+        let resetButton = document.querySelector('.reset');
+        let startKey = ' '; // Default: Spacebar
+        let stopKey = ' '; // Default: Spacebar
+        let resetKey = 'Escape'; // Default: Escape
+        let startStopSame = true;
+        let timer = null, startTime = 0, elapsedTime = 0;
+
+        function updateDisplay() {
             let time = elapsedTime + (timer ? Date.now() - startTime : 0);
-            let hrs = String(Math.floor(time / 3600000)).padStart(2, '0');
-            let mins = String(Math.floor((time % 3600000) / 60000)).padStart(2, '0');
-            let secs = String(Math.floor((time % 60000) / 1000)).padStart(2, '0');
-            let ms = String(time % 1000).padStart(3, '0');
-            document.getElementById('timer').innerText = `${hrs}:${mins}:${secs}.${ms}`;
+            let hours = Math.floor(time / 3600000).toString().padStart(2, '0');
+            let minutes = Math.floor((time % 3600000) / 60000).toString().padStart(2, '0');
+            let seconds = Math.floor((time % 60000) / 1000).toString().padStart(2, '0');
+            let milliseconds = (time % 1000).toString().padStart(3, '0');
+            timerDisplay.textContent = `${hours}:${minutes}:${seconds}.${milliseconds}`;
         }
-        
+
         function startTimer() {
             if (!timer) {
-                startTime = Date.now();
-                timer = setInterval(updateTimerDisplay, 10);
+                startTime = Date.now() - elapsedTime;
+                timer = setInterval(updateDisplay, 10);
             }
         }
-        
+
         function stopTimer() {
             if (timer) {
                 elapsedTime += Date.now() - startTime;
@@ -67,49 +56,26 @@
                 timer = null;
             }
         }
-        
-        function toggleTimer() {
-            if (timer) {
-                stopTimer();
-            } else {
-                startTimer();
-            }
+
+        function resetTimer() {
+            stopTimer();
+            elapsedTime = 0;
+            updateDisplay();
         }
-        
-        document.getElementById('startBtn').addEventListener('click', startTimer);
-        document.getElementById('stopBtn').addEventListener('click', stopTimer);
-        
-        document.getElementById('startKey').addEventListener('input', (e) => {
-            startKey = e.target.value.toLowerCase();
-            if (sameKey) {
-                stopKey = startKey;
-                document.getElementById('stopKey').value = '';
-            }
-        });
-        
-        document.getElementById('stopKey').addEventListener('input', (e) => {
-            if (!sameKey) {
-                stopKey = e.target.value.toLowerCase();
-            }
-        });
-        
-        document.getElementById('sameKey').addEventListener('change', (e) => {
-            sameKey = e.target.checked;
-            document.getElementById('stopKey').disabled = sameKey;
-            if (sameKey) {
-                stopKey = startKey;
-                document.getElementById('stopKey').value = '';
-            }
-        });
-        
+
+        startButton.addEventListener('click', startTimer);
+        stopButton.addEventListener('click', stopTimer);
+        resetButton.addEventListener('click', resetTimer);
+
         document.addEventListener('keydown', (e) => {
-            let key = e.key.toLowerCase();
-            if (key === startKey && sameKey) {
-                toggleTimer();
-            } else if (key === startKey) {
+            if (e.key === startKey && startStopSame) {
+                timer ? stopTimer() : startTimer();
+            } else if (e.key === startKey && !startStopSame) {
                 startTimer();
-            } else if (key === stopKey) {
+            } else if (e.key === stopKey && !startStopSame) {
                 stopTimer();
+            } else if (e.key === resetKey) {
+                resetTimer();
             }
         });
     </script>
