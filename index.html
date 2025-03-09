@@ -133,18 +133,19 @@
         });
         
         function setKey(inputElement, keyVar) {
+            inputElement.addEventListener('focus', () => {
+                inputElement.value = '';
+            });
             inputElement.addEventListener('keydown', (event) => {
                 event.preventDefault();
                 let key = event.key;
                 if (key === ' ') key = 'Space';
-                if (keyVar !== 'stopKey' || !document.getElementById('toggleSameShortcut').checked) {
-                    if (![startKey, stopKey, resetKey].includes(key) || key === window[keyVar]) {
-                        window[keyVar] = key;
-                        inputElement.value = key;
-                        if (keyVar === 'startKey' && document.getElementById('toggleSameShortcut').checked) {
-                            stopKey = key;
-                            document.getElementById('stopKeyInput').value = key;
-                        }
+                if (![startKey, stopKey, resetKey].includes(key) || key === window[keyVar]) {
+                    window[keyVar] = key;
+                    inputElement.value = key;
+                    if (keyVar === 'startKey' && document.getElementById('toggleSameShortcut').checked) {
+                        stopKey = key;
+                        document.getElementById('stopKeyInput').value = key;
                     }
                 }
             });
