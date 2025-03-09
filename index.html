@@ -13,7 +13,8 @@
         .start { background: green; color: white; }
         .stop { background: red; color: white; }
         .reset { background: blue; color: white; }
-        .settings { margin-top: 20px; font-size: 1.2rem; }
+        .settings { margin-top: 20px; }
+        .keyboard-img { width: 100%; max-width: 500px; cursor: pointer; }
     </style>
 </head>
 <body>
@@ -24,27 +25,28 @@
         <button class="reset">Reset</button>
     </div>
     <div class="settings">
-        <label>Start Key: <input type="text" id="startKey" value=" "></label>
-        <label>Stop Key: <input type="text" id="stopKey" value=" "></label>
-        <label>Reset Key: <input type="text" id="resetKey" value="Escape"></label>
-        <label><input type="checkbox" id="sameKey" checked> Use same key for Start/Stop</label>
+        <p>Click on the keyboard image to assign a key:</p>
+        <img src="keyboard.png" alt="Keyboard Layout" class="keyboard-img">
+        <p>Start Key: <span id="startKeyDisplay">Space</span></p>
+        <p>Stop Key: <span id="stopKeyDisplay">Space</span></p>
+        <p>Reset Key: <span id="resetKeyDisplay">Escape</span></p>
     </div>
     <script>
         let timerDisplay = document.querySelector('.timer');
         let startButton = document.querySelector('.start');
         let stopButton = document.querySelector('.stop');
         let resetButton = document.querySelector('.reset');
-        let startKeyInput = document.getElementById('startKey');
-        let stopKeyInput = document.getElementById('stopKey');
-        let resetKeyInput = document.getElementById('resetKey');
-        let sameKeyCheckbox = document.getElementById('sameKey');
-
-        let startKey = startKeyInput.value;
-        let stopKey = stopKeyInput.value;
-        let resetKey = resetKeyInput.value;
-        let startStopSame = sameKeyCheckbox.checked;
+        let keyboardImg = document.querySelector('.keyboard-img');
+        let startKeyDisplay = document.getElementById('startKeyDisplay');
+        let stopKeyDisplay = document.getElementById('stopKeyDisplay');
+        let resetKeyDisplay = document.getElementById('resetKeyDisplay');
+        
+        let startKey = ' '; // Default: Spacebar
+        let stopKey = ' '; // Default: Spacebar
+        let resetKey = 'Escape'; // Default: Escape
+        let startStopSame = true;
         let timer = null, startTime = 0, elapsedTime = 0;
-
+        
         function updateDisplay() {
             let time = elapsedTime + (timer ? Date.now() - startTime : 0);
             let hours = Math.floor(time / 3600000).toString().padStart(2, '0');
@@ -75,6 +77,32 @@
             updateDisplay();
         }
 
+        function setKey(action) {
+            document.addEventListener('keydown', function keyListener(e) {
+                if (action === 'start') {
+                    startKey = e.key;
+                    startKeyDisplay.textContent = e.key;
+                } else if (action === 'stop') {
+                    stopKey = e.key;
+                    stopKeyDisplay.textContent = e.key;
+                } else if (action === 'reset') {
+                    resetKey = e.key;
+                    resetKeyDisplay.textContent = e.key;
+                }
+                document.removeEventListener('keydown', keyListener);
+            }, { once: true });
+        }
+
+        keyboardImg.addEventListener('click', () => {
+            let action = prompt("Assign key to: start, stop, or reset?");
+            if (['start', 'stop', 'reset'].includes(action)) {
+                alert(`Press the key you want to assign to ${action}.`);
+                setKey(action);
+            } else {
+                alert("Invalid selection.");
+            }
+        });
+
         startButton.addEventListener('click', startTimer);
         stopButton.addEventListener('click', stopTimer);
         resetButton.addEventListener('click', resetTimer);
@@ -90,11 +118,6 @@
                 resetTimer();
             }
         });
-
-        startKeyInput.addEventListener('input', () => startKey = startKeyInput.value);
-        stopKeyInput.addEventListener('input', () => stopKey = stopKeyInput.value);
-        resetKeyInput.addEventListener('input', () => resetKey = resetKeyInput.value);
-        sameKeyCheckbox.addEventListener('change', () => startStopSame = sameKeyCheckbox.checked);
     </script>
 </body>
 </html>
