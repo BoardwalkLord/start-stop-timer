@@ -28,38 +28,52 @@
 </head>
 <body>
     <h1>Start Stop Timer</h1>
-    <div id="timer">00:00:00</div>
+    <div id="timer">00:00:00.000</div>
     <button id="startBtn">Start</button>
     <button id="stopBtn">Stop</button>
     <div>
         <label>Start Key: <input type="text" id="startKey" maxlength="1"></label>
-        <label>Stop Key: <input type="text" id="stopKey" maxlength="1"></label>
+        <label>Stop Key: <input type="text" id="stopKey" maxlength="1" disabled></label>
+        <label><input type="checkbox" id="sameKey"> Use same key for Start/Stop</label>
     </div>
     <script>
         let timer;
-        let seconds = 0;
+        let startTime;
+        let elapsedTime = 0;
         let startKey = 's';
         let stopKey = 'x';
+        let sameKey = false;
         
         function updateTimerDisplay() {
-            let hrs = String(Math.floor(seconds / 3600)).padStart(2, '0');
-            let mins = String(Math.floor((seconds % 3600) / 60)).padStart(2, '0');
-            let secs = String(seconds % 60).padStart(2, '0');
-            document.getElementById('timer').innerText = `${hrs}:${mins}:${secs}`;
+            let time = elapsedTime + (timer ? Date.now() - startTime : 0);
+            let hrs = String(Math.floor(time / 3600000)).padStart(2, '0');
+            let mins = String(Math.floor((time % 3600000) / 60000)).padStart(2, '0');
+            let secs = String(Math.floor((time % 60000) / 1000)).padStart(2, '0');
+            let ms = String(time % 1000).padStart(3, '0');
+            document.getElementById('timer').innerText = `${hrs}:${mins}:${secs}.${ms}`;
         }
         
         function startTimer() {
             if (!timer) {
-                timer = setInterval(() => {
-                    seconds++;
-                    updateTimerDisplay();
-                }, 1000);
+                startTime = Date.now();
+                timer = setInterval(updateTimerDisplay, 10);
             }
         }
         
         function stopTimer() {
-            clearInterval(timer);
-            timer = null;
+            if (timer) {
+                elapsedTime += Date.now() - startTime;
+                clearInterval(timer);
+                timer = null;
+            }
+        }
+        
+        function toggleTimer() {
+            if (timer) {
+                stopTimer();
+            } else {
+                startTimer();
+            }
         }
         
         document.getElementById('startBtn').addEventListener('click', startTimer);
@@ -67,16 +81,34 @@
         
         document.getElementById('startKey').addEventListener('input', (e) => {
             startKey = e.target.value.toLowerCase();
+            if (sameKey) {
+                stopKey = startKey;
+                document.getElementById('stopKey').value = '';
+            }
         });
         
         document.getElementById('stopKey').addEventListener('input', (e) => {
-            stopKey = e.target.value.toLowerCase();
+            if (!sameKey) {
+                stopKey = e.target.value.toLowerCase();
+            }
+        });
+        
+        document.getElementById('sameKey').addEventListener('change', (e) => {
+            sameKey = e.target.checked;
+            document.getElementById('stopKey').disabled = sameKey;
+            if (sameKey) {
+                stopKey = startKey;
+                document.getElementById('stopKey').value = '';
+            }
         });
         
         document.addEventListener('keydown', (e) => {
-            if (e.key.toLowerCase() === startKey) {
+            let key = e.key.toLowerCase();
+            if (key === startKey && sameKey) {
+                toggleTimer();
+            } else if (key === startKey) {
                 startTimer();
-            } else if (e.key.toLowerCase() === stopKey) {
+            } else if (key === stopKey) {
                 stopTimer();
             }
         });
