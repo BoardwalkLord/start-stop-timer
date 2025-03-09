@@ -35,16 +35,11 @@
             position: absolute;
             top: 10px;
             right: 10px;
-        }
-        #shortcut-settings {
-            position: absolute;
-            bottom: 10px;
-            left: 50%;
-            transform: translateX(-50%);
             display: flex;
+            flex-direction: column;
             gap: 10px;
         }
-        input {
+        input[type="text"] {
             width: 50px;
             text-align: center;
             font-size: 1rem;
@@ -63,23 +58,17 @@
             <input type="checkbox" id="toggleSameShortcut" checked>
             Use same shortcut for Start/Stop
         </label>
-    </div>
-    <div id="shortcut-settings">
-        <label>Start: <input type="text" id="startKeyInput" readonly></label>
-        <label id="stopKeyLabel">Stop: <input type="text" id="stopKeyInput" readonly></label>
-        <label>Reset: <input type="text" id="resetKeyInput" readonly></label>
+        <label>Start Key: <input type="text" id="startKeyInput" readonly></label>
+        <label>Stop Key: <input type="text" id="stopKeyInput" readonly></label>
+        <label>Reset Key: <input type="text" id="resetKeyInput" readonly></label>
     </div>
     
     <script>
         let timerInterval, startTime, elapsedTime = 0;
         let running = false;
-        let startKey = ' '; // Spacebar
-        let stopKey = ' '; // Spacebar (default same as start)
+        let startKey = ' '; // Spacebar default
+        let stopKey = ' '; // Spacebar default
         let resetKey = 'Escape';
-        
-        document.getElementById('startKeyInput').value = startKey;
-        document.getElementById('stopKeyInput').value = stopKey;
-        document.getElementById('resetKeyInput').value = resetKey;
         
         function updateTimerDisplay() {
             const time = new Date(elapsedTime);
@@ -136,29 +125,39 @@
         });
         
         document.getElementById('toggleSameShortcut').addEventListener('change', (event) => {
+            document.getElementById('stopKeyInput').disabled = event.target.checked;
             if (event.target.checked) {
                 stopKey = startKey;
-                document.getElementById('stopKeyLabel').style.display = 'none';
-            } else {
-                document.getElementById('stopKeyLabel').style.display = 'inline';
+                document.getElementById('stopKeyInput').value = startKey;
             }
         });
         
-        function assignShortcut(inputElement, assignTo) {
+        function setKey(inputElement, keyVar) {
             inputElement.addEventListener('keydown', (event) => {
                 event.preventDefault();
                 let key = event.key;
                 if (key === ' ') key = 'Space';
-                if (key === 'Escape') key = 'Escape';
-                if ([startKey, stopKey, resetKey].includes(key)) return;
-                assignTo(key);
-                inputElement.value = key;
+                if (keyVar !== 'stopKey' || !document.getElementById('toggleSameShortcut').checked) {
+                    if (![startKey, stopKey, resetKey].includes(key) || key === window[keyVar]) {
+                        window[keyVar] = key;
+                        inputElement.value = key;
+                        if (keyVar === 'startKey' && document.getElementById('toggleSameShortcut').checked) {
+                            stopKey = key;
+                            document.getElementById('stopKeyInput').value = key;
+                        }
+                    }
+                }
             });
         }
         
-        assignShortcut(document.getElementById('startKeyInput'), (key) => { startKey = key; if (document.getElementById('toggleSameShortcut').checked) stopKey = key; });
-        assignShortcut(document.getElementById('stopKeyInput'), (key) => { if (!document.getElementById('toggleSameShortcut').checked) stopKey = key; });
-        assignShortcut(document.getElementById('resetKeyInput'), (key) => { resetKey = key; });
+        setKey(document.getElementById('startKeyInput'), 'startKey');
+        setKey(document.getElementById('stopKeyInput'), 'stopKey');
+        setKey(document.getElementById('resetKeyInput'), 'resetKey');
+        
+        document.getElementById('startKeyInput').value = startKey;
+        document.getElementById('stopKeyInput').value = stopKey;
+        document.getElementById('resetKeyInput').value = resetKey;
+        document.getElementById('stopKeyInput').disabled = document.getElementById('toggleSameShortcut').checked;
         
         updateTimerDisplay();
     </script>
